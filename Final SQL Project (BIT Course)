@@ -1,0 +1,107 @@
+#This project utilizes data from a dataset called chinook, which represents a digital media store. 
+#The data set includes the following tables: employees, customers, invoices, invoice_items, albums, artists, tracks, genres, media_types, playlists, playlist_track
+
+#A visual diagram of how these tables relate to one another can be seen in the following linked image: https://ibb.co/0ML1Mm8
+
+
+1. Show customers (their full name, id, and country) who are not in the US.
+SELECT Customerid, FirstName, LastName, Country
+FROM chinook.customers
+WHERE Country<>'USA';
+
+2. Show only the customers from Brazil.
+SELECT Customerid, FirstName, LastName, Country
+FROM chinook.customers
+WHERE Country='Brazil';
+
+3. Find the invoices of the customers who are from Brazil. The resulting table should show the customer's full name, invoice ID, date of the invoice, and the billing country.
+SELECT c.FirstName, c.LastName, i.Invoiceid, i.invoicedate, i.BillingCountry
+FROM chinook.customers c
+JOIN chinook.invoices i
+ON c.Customerid=i.Invoiceid
+WHERE c.Country='Brazil';
+
+4. Show the employees who are sales agents.
+SELECT *
+FROM chinook.employees
+WHERE Title='Sales Support Agent';
+
+5. Find a unique/distinct list of billing countries from the invoice table.
+SELECT DISTINCT BillingCountry
+FROM chinook.invoices
+ORDER BY BillingCountry ASC;
+
+6. Provide a query that shows the invoices associated with each sales agent. The resulting table should include the sales agent's full name.
+SELECT emp.LastName, emp.FirstName, inv.InvoiceId
+FROM chinook.employees emp
+JOIN chinook.customers cust ON cust.SupportRepID=emp.EmployeeId
+JOIN chinook.invoices inv ON inv.CustomerId=cust.CustomerId;
+
+7. Show the invoice total, customer name, country, and sales agent name for all invoices and customers.
+SELECT cust.FirstName, cust.LastName, cust.Country, cust.SupportRepId, inv.total
+FROM chinook.customers cust
+JOIN chinook.invoices inv
+ON cust.CustomerId=inv.InvoiceID;
+
+8. How many invoices were there in 2009?
+SELECT COUNT(*) AS total_invoices
+FROM chinook.invoices
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+9. What are the total sales for 2009?
+SELECT ROUND(SUM(Total),2) AS total_sales
+FROM chinook.invoices
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+10. Write a query that includes the purchased track name with each invoice line ID.
+SELECT t.Name, ii.InvoiceLineId
+FROM chinook.tracks t
+JOIN chinook.invoice_items ii
+ON t.TrackId=ii.TrackId;
+
+11. Write a query that includes the purchased track name AND artist name with each invoice line ID.
+SELECT t.Name AS Track, art.Name AS Artist, ii.InvoiceLineId
+FROM chinook.invoice_items ii
+JOIN chinook.tracks t ON ii.TrackId=t.TrackId
+JOIN chinook.albums alb ON t.AlbumId=alb.AlbumId
+JOIN chinook.artists art ON alb.ArtistId=art.ArtistId;
+
+12. Provide a query that shows all the tracks, and include the album name, media type, and genre.
+SELECT t.Name AS Track, alb.title AS Album, mt.Name AS MediaType, g.Name AS Genre
+FROM chinook.albums alb
+JOIN chinook.tracks t ON alb.AlbumId=t.AlbumId
+JOIN chinook.media_types mt ON t.MediaTypeId=mt.MediaTypeId
+JOIN chinook.genres g ON t.GenreId=g.GenreId;
+
+13. Show the total sales made by each sales agent.
+SELECT e.FirstName, e.LastName, ROUND(SUM(i.total),2) AS total_sales
+FROM chinook.employees e
+JOIN chinook.customers c ON e.EmployeeId=c.SupportRepId
+JOIN chinook.invoices i ON c.CustomerId=i.InvoiceId
+WHERE e.Title='Sales Support Agent'
+GROUP BY e.FirstName;
+
+14. Which sales agent made the most dollars in 2009?
+SELECT e.FirstName, e.LastName, ROUND(SUM(i.total),2) AS total_sales
+FROM chinook.employees e
+JOIN chinook.customers c ON e.EmployeeId=c.SupportRepId
+JOIN chinook.invoices i ON c.CustomerId=i.InvoiceId
+WHERE e.Title='Sales Support Agent'
+AND i.InvoiceDate LIKE '2009%'
+GROUP BY e.FirstName
+ORDER BY total_sales DESC LIMIT 1;
+
+15. Which tracks show up in playlists the most?
+SELECT DISTINCT COUNT(pt.TrackId) AS number_of_playlists, t.Name AS track_name
+FROM chinook.playlist_track pt
+JOIN chinook.tracks t
+ON pt.TrackId=t.TrackId
+GROUP BY pt.TrackId
+ORDER BY number_of_playlists DESC
+LIMIT 10;
+
+16. Which songs belong to the "Easy Listening" genre?
+SELECT t.Name AS track, g.Name AS genre
+FROM chinook.tracks t
+JOIN chinook.genres g ON t.GenreId=g.GenreId
+WHERE genre='Easy Listening';
